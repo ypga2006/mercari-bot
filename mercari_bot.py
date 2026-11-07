@@ -19,8 +19,8 @@ TARGET_URLS = [
     },
 ]
 
-# 깃허브 Secrets에서 웹훅 URL을 안전하게 가져옵니다
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+# 🔗 디스코드 웹훅 URL을 코드 내에 직접 설정했습니다.
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1568541299420958790/gT5Z8R7LAj2_LPbBSEbN0ibNo8K3Dtw7QI60ERR7u9jcdKQxc2cAeRabeGJDzlqVzgho"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_FILE = os.path.join(BASE_DIR, "latest_item_cache.json")
@@ -29,9 +29,14 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
 
+# 🚀 Session 객체를 생성하여 TCP 연결을 재사용하고 속도를 높입니다.
+SESSION = requests.Session()
+SESSION.headers.update(HEADERS)
+
 def get_item_ids(target_url):
     try:
-        response = requests.get(target_url, headers=HEADERS, timeout=20)
+        # 🚀 timeout을 10초로 설정하여 속도를 최적화했습니다.
+        response = SESSION.get(target_url, timeout=10)
         response.raise_for_status()
         found_ids = re.findall(r"https://jp\.mercari\.com/item/(m\d+)", response.text)
         
@@ -74,7 +79,7 @@ def send_discord_alert(name, new_items):
         content += f"- 상품 링크: {item['item_url']}\n- 구매대행: {item['proxy_url']}\n"
 
     try:
-        requests.post(DISCORD_WEBHOOK_URL, json={"content": content})
+        SESSION.post(DISCORD_WEBHOOK_URL, json={"content": content}, timeout=10)
     except Exception as e:
         print(f"디스코드 전송 오류: {e}")
 
@@ -117,8 +122,6 @@ def main():
             send_discord_alert(name, new_items_data)
             cache[name] = current_top_id
             is_updated = True
-        
-        time.sleep(2)
 
     if is_updated:
         save_cache(cache)
