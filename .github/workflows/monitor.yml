@@ -2,32 +2,32 @@ name: Mercari Monitor
 
 on:
   schedule:
-    - cron: '*/10 * * * *' # 10분마다 주기적으로 실행 (원하시면 '*/5 * * * *'로 바꾸어 5분마디로 설정 가능)
-  workflow_dispatch: # 깃허브 웹페이지에서 수동으로 즉시 실행할 수 있게 해주는 버튼
+    - cron: '*/10 * * * *' # 10분마다 실행
+  workflow_dispatch: # 수동 실행 허용
 
 jobs:
-  run-monitor:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: 깃허브 코드 가져오기
-        uses: actions/checkout@v4
+    
+    # 👇 [추가] 깃허브 액션이 저장소에 접근할 수 있도록 권한 부여
+    permissions:
+      contents: read
 
-      - name: 파이썬 설정
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
-      - name: 라이브러리 설치
-        run: pip install requests
-
-      - name: 모니터링 스크립트 실행
+          
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4
+          
+      - name: Run bot
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: python mercari_bot.py
-
-      - name: 변경된 캐시 파일 자동 저장 (Commit & Push)
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add latest_item_cache.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update cache [skip ci]" && git push)
+          python mercari_bot.py
