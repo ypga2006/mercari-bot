@@ -20,7 +20,7 @@ TARGET_URLS = [
 ]
 
 # 🔗 디스코드 웹훅 URL을 코드 내에 직접 설정했습니다.
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1568541299420958790/gT5Z8R7LAj2_LPbBSEbN0ibNo8K3Dtw7QI60ERR7u9jcdKQxc2cAeRabeGJDzlqVzgho"
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_FILE = os.path.join(BASE_DIR, "latest_item_cache.json")
