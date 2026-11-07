@@ -9,15 +9,14 @@ jobs:
   run-monitor:
     runs-on: ubuntu-latest
     
-    # 👇 [필수] 깃허브 저장소 읽기/쓰기 권한 명시
     permissions:
-      contents: read
+      contents: write # 👈 캐시 파일을 저장(commit)해야 하므로 write 권한으로 변경합니다.
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: false # Git 인증 충돌 방지
+          persist-credentials: true # 👈 Git 인증을 허용하여 캐시 자동 저장
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -33,3 +32,10 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           python mercari_bot.py
+
+      - name: Commit and push cache if changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add latest_item_cache.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update item cache [skip ci]" && git push)
